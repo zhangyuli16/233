@@ -1,0 +1,14 @@
+<routes>
+   <vType id="car" type="passenger" length="5" accel="3.5" decel="2.2" sigma="1.0"/>
+   <flow id="carflow01" type="car" beg="0" end="9999" probability="0.10" from="gneE0" to="gneE1"  />
+  
+
+   <flow id="carflow10" type="car" beg="0" end="9999" probability="0.06" from="-gneE1" to="-gneE0" />
+   
+
+   <flow id="carflow23" type="car" beg="0" end="9999" probability="0.10" from="-gneE2" to="gneE3" />
+
+  
+   <flow id="carflow32" type="car" beg="0" end="9999" probability="0.06" from="-gneE3" to="gneE2" />
+   
+</routes>
