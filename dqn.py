@@ -108,6 +108,6 @@ if __name__ == "__main__":
         PI = traci.trafficlight.getPhaseDuration('gneJ5')
         print(PI)
         print('222')
-
+        print('444')
         traci.simulationStep()
     traci.close()
