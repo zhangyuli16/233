@@ -105,8 +105,8 @@ if __name__ == "__main__":
         sumoBinary = checkBinary('sumo-gui')
     env.reset()
     for step in range(0,3600):
-        P = traci.trafficlight.getPhaseDuration('gneJ5')
-        print(P)
+        PI = traci.trafficlight.getPhaseDuration('gneJ5')
+        print(PI)
 
         traci.simulationStep()
     traci.close()
