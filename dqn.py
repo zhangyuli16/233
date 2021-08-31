@@ -251,8 +251,6 @@ class DQN:
 
 def Run_sumo():
     step = 0
-    traci.start([sumoBinary, "-c", "single_route.sumocfg"])
-    env.reset()
     for episode in range(0,300):
         while True:
             observation = env.reset()
@@ -287,11 +285,6 @@ if __name__ == "__main__":
         sumoBinary = checkBinary('sumo')
     else:
         sumoBinary = checkBinary('sumo-gui')
-    env.reset()
-    for step in range(0,300):
-        PI = traci.trafficlight.getPhaseDuration('gneJ5')
-        print(PI)
-        print('222')
-        print('444')
-        traci.simulationStep()
-    traci.close()
+    Run_sumo()
+
+
