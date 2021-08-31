@@ -249,19 +249,46 @@ class DQN:
         self.learn_step_counter += 1
 
 
+def Run_sumo():
+    step = 0
+    traci.start([sumoBinary, "-c", "single_route.sumocfg"])
+    env.reset()
+    for episode in range(0,300):
+        while True:
+            observation = env.reset()
+            action = RL.choose_action(observation)
+            observation_, reward,done= env.step(action)
+            RL.store_transition(observation, action, reward, observation_)
+            if (step > 200) and (step % 5 == 0):
+                RL.learn()
 
+            # swap observation
+            observation = observation_
+            if done:
+                break
+            step += 1
+    print('simulation over')
+    env.close()
 
 
 
 if __name__ == "__main__":
     env = sumo_env()
+    RL = DQN(env.n_actions, env.n_features,
+             learning_rate=0.01,
+             reward_decay=0.9,
+             e_greedy=0.9,
+             replace_target_iter=200,
+             memory_size=1000,
+             # output_graph=True
+             )
     options = get_options()
     if options.nogui:
         sumoBinary = checkBinary('sumo')
     else:
         sumoBinary = checkBinary('sumo-gui')
     env.reset()
-    for step in range(0,3600):
+    for step in range(0,300):
         PI = traci.trafficlight.getPhaseDuration('gneJ5')
         print(PI)
         print('222')
