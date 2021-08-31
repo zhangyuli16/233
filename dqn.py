@@ -31,10 +31,7 @@ class sumo_env:
         self.n_actions = len(self.action_space)
         self.n_features = 40000
 
-    def reset(self):
-        traci.start([sumoBinary, "-c", "single_route.sumocfg"])
-        # s=self.get_state()
-        # return s
+
 
     def get_reward(self):
         car_ids = traci.vehicle.getIDList()
@@ -52,6 +49,7 @@ class sumo_env:
             state[position_x, position_y] = 1
         s = state.flatten()
         return s
+
 
     def getPhaseFromAction(phases, act):
         if act < 4:
@@ -251,9 +249,11 @@ class DQN:
 
 def Run_sumo():
     step = 0
+    traci.start([sumoBinary, "-c", "single_route.sumocfg"])
     for episode in range(0,300):
         while True:
-            observation = env.reset()
+
+            observation = env.get_state()
             action = RL.choose_action(observation)
             observation_, reward,done= env.step(action)
             RL.store_transition(observation, action, reward, observation_)
