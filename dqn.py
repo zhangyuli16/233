@@ -251,14 +251,21 @@ def Run_sumo():
     step = 0
     traci.start([sumoBinary, "-c", "single_route.sumocfg"])
     for episode in range(0,300):
+        print('loop start')
         while True:
-
             observation = env.get_state()
+            print('state is',observation)
             action = RL.choose_action(observation)
+            print('chooose action is',action)
             observation_, reward,done= env.step(action)
+            print('next state is',observation_)
+            print('reward is',reward)
+            print(done)
             RL.store_transition(observation, action, reward, observation_)
             if (step > 200) and (step % 5 == 0):
+                print('kaishixuexi')
                 RL.learn()
+
 
             # swap observation
             observation = observation_
