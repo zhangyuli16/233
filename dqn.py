@@ -35,10 +35,10 @@ class sumo_env:
 
     def get_reward(self):
         car_ids = traci.vehicle.getIDList()
-        reward = 0
+        r = 0
         for car_id in car_ids:
-            reward =reward- traci.vehicle.getAccumulatedWaitingTime(car_id)
-        return reward
+            r =r- traci.vehicle.getAccumulatedWaitingTime(car_id)
+        return r
 
     def get_state(self):
         state = np.zeros([200, 200])
@@ -62,17 +62,21 @@ class sumo_env:
         if action == 0:
             if traci.trafficlight.getPhase('gneJ5')==0:
                 traci.trafficlight.setPhaseDuration('gneJ5', '45')
+                print('action is apply in 1')
         elif action == 1:
             if traci.trafficlight.getPhase('gneJ5')==2:
                 traci.trafficlight.setPhaseDuration('gneJ5', '40')
+                print('action is apply in 2')
 
         elif action == 2:
             if traci.trafficlight.getPhase('gneJ5')==0:
                 traci.trafficlight.setPhaseDuration('gneJ5', '40')
+                print('action is apply in 3')
 
         elif action == 3:
             if traci.trafficlight.getPhase('gneJ5')==2:
                 traci.trafficlight.setPhaseDuration('gneJ5', '45')
+                print('action is apply in 4')
 
 
         traci.simulationStep()
@@ -183,6 +187,7 @@ class DQN:
             self.memory_counter = 0
 
         transition = np.hstack((s, [a, r], s_))
+        print('transition is ',transition)
 
         # replace the old memory with new memory
         index = self.memory_counter % self.memory_size
@@ -248,21 +253,26 @@ class DQN:
 
 
 def Run_sumo():
-    step = 0
+    step1 = 0
     traci.start([sumoBinary, "-c", "single_route.sumocfg"])
-    for episode in range(0,300):
+    for step in range(0,50):
         print('loop start')
         while True:
+            print('-------------------------------------------------------')
             observation = env.get_state()
             print('state is',observation)
             action = RL.choose_action(observation)
-            print('chooose action is',action)
+            print('choose action is',action)
             observation_, reward,done= env.step(action)
             print('next state is',observation_)
             print('reward is',reward)
             print(done)
+            light=traci.trafficlight.getPhase('gneJ5')
+            print('light is',light)
+            Duration=traci.trafficlight.getPhaseDuration('gneJ5')
+            print('phase duration is',Duration)
             RL.store_transition(observation, action, reward, observation_)
-            if (step > 200) and (step % 5 == 0):
+            if (step1 > 200) and (step1 % 5 == 0):
                 print('kaishixuexi')
                 RL.learn()
 
@@ -271,7 +281,9 @@ def Run_sumo():
             observation = observation_
             if done:
                 break
-            step += 1
+            step1 += 1
+            print('step1 is',step1)
+            print('-----------------------------------------------------')
     print('simulation over')
     env.close()
 
