@@ -92,15 +92,14 @@ class sumo_env:
         # #     if traci.trafficlight.getPhase('gneJ5')==2:
         # #         traci.trafficlight.setPhaseDuration('gneJ5', '45')
         # #         print('action is apply in 4')
-
-        P=traci.vehicle.getIDCount()
-        print('pre',P)
+        if action==0:
+            traci.trafficlight.setPhaseDuration('gneJ5', 30)
 
 
 
         traci.simulationStep()
-        PP=traci.vehicle.getIDCount()
-        print('next',PP)
+        # PP=traci.vehicle.getIDCount()
+        # print('next',PP)
         s_=self.get_state()
         if (self.get_state()==np.zeros([1, 40000])).all==True:
             done = True
@@ -290,15 +289,13 @@ if __name__ == "__main__":
     step1=0
     traci.start([sumoBinary, "-c", "single_route.sumocfg"])
     for step in range(0, 3000):
-        while True:
+        while traci.simulation.getMinExpectedNumber() > 0:
             print('-------------------------------------------------------')
             observation = env.get_state()
             print('state is', observation)
             action = RL.choose_action(observation)
             print('choose action is', action)
             env.step(action)
-            P=traci.trafficlight.getPhaseDuration('gneJ5')
-            print('time is',P)
             # observation_, reward, done = env.step(action)
         #     print('next state is', observation_)
         #     print('reward is', reward)
