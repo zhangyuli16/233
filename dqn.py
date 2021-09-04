@@ -23,6 +23,13 @@ def get_options():
     options, args = optParser.parse_args()
     return options
 
+options = get_options()
+if options.nogui:
+    sumoBinary = checkBinary('sumo')
+else:
+    sumoBinary = checkBinary('sumo-gui')
+sumoCmd = [sumoBinary, "-c", "single_route.sumocfg"]
+
 #-------------------------------------------SUMO environment-----------------------------------------------------------#
 
 class sumo_env:
@@ -50,6 +57,10 @@ class sumo_env:
         s = state.flatten()
         return s
 
+    def get_state_new(self):
+        state=traci.vehicle.getIDCount()
+        return state
+
 
     def getPhaseFromAction(phases, act):
         if act < 4:
@@ -59,34 +70,44 @@ class sumo_env:
         return phases
 
     def step(self,action):
-        if action == 0:
-            if traci.trafficlight.getPhase('gneJ5')==0:
-                traci.trafficlight.setPhaseDuration('gneJ5', '45')
-                print('action is apply in 1')
-        elif action == 1:
-            if traci.trafficlight.getPhase('gneJ5')==2:
-                traci.trafficlight.setPhaseDuration('gneJ5', '40')
-                print('action is apply in 2')
+        # if action == 0:
+        #     print('1')
+        # #     if traci.trafficlight.getPhase('gneJ5')==0:
+        # #         traci.trafficlight.setPhaseDuration('gneJ5', '45')
+        # #         print('action is apply in 1')
+        # elif action == 1:
+        #     print('2')
+        # #     if traci.trafficlight.getPhase('gneJ5')==2:
+        # #         traci.trafficlight.setPhaseDuration('gneJ5', '40')
+        # #         print('action is apply in 2')
+        # #
+        # elif action == 2:
+        #     print('3')
+        # #     if traci.trafficlight.getPhase('gneJ5')==0:
+        # #         traci.trafficlight.setPhaseDuration('gneJ5', '40')
+        # #         print('action is apply in 3')
+        # #
+        # elif action == 3:
+        #     print('4')
+        # #     if traci.trafficlight.getPhase('gneJ5')==2:
+        # #         traci.trafficlight.setPhaseDuration('gneJ5', '45')
+        # #         print('action is apply in 4')
 
-        elif action == 2:
-            if traci.trafficlight.getPhase('gneJ5')==0:
-                traci.trafficlight.setPhaseDuration('gneJ5', '40')
-                print('action is apply in 3')
+        P=traci.vehicle.getIDCount()
+        print('pre',P)
 
-        elif action == 3:
-            if traci.trafficlight.getPhase('gneJ5')==2:
-                traci.trafficlight.setPhaseDuration('gneJ5', '45')
-                print('action is apply in 4')
 
 
         traci.simulationStep()
+        PP=traci.vehicle.getIDCount()
+        print('next',PP)
         s_=self.get_state()
         if (self.get_state()==np.zeros([1, 40000])).all==True:
             done = True
         else:
             done = False
         reward=self.get_reward()
-        # print(reward)
+        print(reward)
         return s_,reward,done
 
     def close(self):
@@ -252,40 +273,7 @@ class DQN:
         self.learn_step_counter += 1
 
 
-def Run_sumo():
-    step1 = 0
-    traci.start([sumoBinary, "-c", "single_route.sumocfg"])
-    for step in range(0,50):
-        print('loop start')
-        while True:
-            print('-------------------------------------------------------')
-            observation = env.get_state()
-            print('state is',observation)
-            action = RL.choose_action(observation)
-            print('choose action is',action)
-            observation_, reward,done= env.step(action)
-            print('next state is',observation_)
-            print('reward is',reward)
-            print(done)
-            light=traci.trafficlight.getPhase('gneJ5')
-            print('light is',light)
-            Duration=traci.trafficlight.getPhaseDuration('gneJ5')
-            print('phase duration is',Duration)
-            RL.store_transition(observation, action, reward, observation_)
-            if (step1 > 200) and (step1 % 5 == 0):
-                print('kaishixuexi')
-                RL.learn()
 
-
-            # swap observation
-            observation = observation_
-            if done:
-                break
-            step1 += 1
-            print('step1 is',step1)
-            print('-----------------------------------------------------')
-    print('simulation over')
-    env.close()
 
 
 
@@ -299,11 +287,37 @@ if __name__ == "__main__":
              memory_size=1000,
              # output_graph=True
              )
-    options = get_options()
-    if options.nogui:
-        sumoBinary = checkBinary('sumo')
-    else:
-        sumoBinary = checkBinary('sumo-gui')
-    Run_sumo()
+    step1=0
+    traci.start([sumoBinary, "-c", "single_route.sumocfg"])
+    for step in range(0, 3000):
+        while True:
+            print('-------------------------------------------------------')
+            observation = env.get_state()
+            print('state is', observation)
+            action = RL.choose_action(observation)
+            print('choose action is', action)
+            env.step(action)
+            P=traci.trafficlight.getPhaseDuration('gneJ5')
+            print('time is',P)
+            # observation_, reward, done = env.step(action)
+        #     print('next state is', observation_)
+        #     print('reward is', reward)
+        #     print(done)
+        #     P = traci.trafficlight.getPhase('gneJ5')
+        #     print(P)
+        #     RL.store_transition(observation, action, reward, observation_)
+        #     if (step1 > 200) and (step1 % 5 == 0):
+        #         print('kaishixuexi')
+        #         RL.learn()
+        #
+        #     # swap observation
+        #     observation = observation_
+        #     if done:
+        #         break
+        #     step1 += 1
+        #     print('step1 is', step1)
+        #     print('-----------------------------------------------------')
+        # print('simulation over')
+    env.close()
 
 
