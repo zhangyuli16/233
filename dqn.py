@@ -62,14 +62,17 @@ class sumo_env:
         return state
 
 
-    def getPhaseFromAction(phases, act):
+    def getPhaseFromAction(self,phases, act):
         if act < 4:
-            phases[int(act)] -= 5
+            phases[int(act)] -= 2
         elif act > 4:
-            phases[int(act) - 5] += 5
+            phases[int(act) - 5] += 2
         return phases
 
     def step(self,action):
+        int_phase=[30,30,30,30]
+        action_phase=self.getPhaseFromAction(int_phase,action)
+        print('action phase is ',action_phase)
         # if action == 0:
         #     print('1')
         # #     if traci.trafficlight.getPhase('gneJ5')==0:
@@ -92,8 +95,12 @@ class sumo_env:
         # #     if traci.trafficlight.getPhase('gneJ5')==2:
         # #         traci.trafficlight.setPhaseDuration('gneJ5', '45')
         # #         print('action is apply in 4')
-        if action==0:
-            traci.trafficlight.setPhaseDuration('gneJ5', 30)
+        current_phase = traci.trafficlight.getPhase('gneJ5')
+        print('current phase is',current_phase)
+        if action==current_phase:
+            traci.trafficlight.setPhaseDuration('gneJ5', action_phase[action])
+        print('DURATION IS',traci.trafficlight.getPhaseDuration('gneJ5'))
+
 
 
 
@@ -266,6 +273,7 @@ class DQN:
                                      feed_dict={self.s: batch_memory[:, :self.n_features],
                                                 self.q_target: q_target})
         self.cost_his.append(self.cost)
+        print('cost is',self.cost_his)
 
         # increasing epsilon
         self.epsilon = self.epsilon + self.epsilon_increment if self.epsilon < self.epsilon_max else self.epsilon_max
@@ -296,25 +304,25 @@ if __name__ == "__main__":
             action = RL.choose_action(observation)
             print('choose action is', action)
             env.step(action)
-            # observation_, reward, done = env.step(action)
-        #     print('next state is', observation_)
-        #     print('reward is', reward)
-        #     print(done)
-        #     P = traci.trafficlight.getPhase('gneJ5')
-        #     print(P)
-        #     RL.store_transition(observation, action, reward, observation_)
-        #     if (step1 > 200) and (step1 % 5 == 0):
-        #         print('kaishixuexi')
-        #         RL.learn()
-        #
-        #     # swap observation
-        #     observation = observation_
-        #     if done:
-        #         break
-        #     step1 += 1
-        #     print('step1 is', step1)
-        #     print('-----------------------------------------------------')
-        # print('simulation over')
+            observation_, reward, done = env.step(action)
+            print('next state is', observation_)
+            print('reward is', reward)
+            print(done)
+            P = traci.trafficlight.getPhase('gneJ5')
+            print(P)
+            RL.store_transition(observation, action, reward, observation_)
+            if (step1 > 200) and (step1 % 5 == 0):
+                print('kaishixuexi')
+                RL.learn()
+
+            # swap observation
+            observation = observation_
+            if done:
+                break
+            step1 += 1
+            print('step1 is', step1)
+            print('-----------------------------------------------------')
+    print('simulation over')
     env.close()
 
 
