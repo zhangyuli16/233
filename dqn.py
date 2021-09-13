@@ -121,7 +121,8 @@ class sumo_env:
             traci.trafficlight.setPhaseDuration('gneJ5', action_phase[action])
         print('DURATION IS',traci.trafficlight.getPhaseDuration('gneJ5'))
 
-
+    def step_new(self, action):
+        traci.trafficlight.setPhase('gneJ5', action)
 
 
         traci.simulationStep()
@@ -285,8 +286,10 @@ class DQN:
         batch_index = np.arange(self.batch_size, dtype=np.int32)
         eval_act_index = batch_memory[:, self.n_features].astype(int)
         reward = batch_memory[:, self.n_features + 1]
+        print('jiangli',reward)
 
         q_target[batch_index, eval_act_index] = reward + self.gamma * np.max(q_next, axis=1)
+        print('Bellman function is ',q_target[batch_index, eval_act_index])
 
         # train eval network
         _, self.cost = self.sess.run([self._train_op, self.loss],
@@ -324,8 +327,7 @@ if __name__ == "__main__":
             print('state is', observation)
             action = RL.choose_action(observation)
             print('choose action is', action)
-            env.step(action)
-            observation_, reward, done = env.step(action)
+            observation_, reward, done = env.step_new(action)
             print('next state is', observation_)
             print('reward is', reward)
             print(done)
