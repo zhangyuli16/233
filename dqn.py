@@ -6,6 +6,9 @@ import numpy as np
 import math
 import pandas as pd
 
+np.random.seed(1)
+tf.set_random_seed(1)
+
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
     sys.path.append(tools)
@@ -36,7 +39,7 @@ class sumo_env:
     def __init__(self):
         self.action_space = ['0','1','2','3']
         self.n_actions = len(self.action_space)
-        self.n_features = 40000
+        self.n_features = 4
 
 
 
@@ -58,7 +61,24 @@ class sumo_env:
         return s
 
     def get_state_new(self):
-        state=traci.vehicle.getIDCount()
+        s1 = traci.vehicle.getIDCount()
+        s2 = traci.trafficlight.getPhase('gneJ5')
+        positions = []
+        vols = []
+        for carID in traci.vehicle.getIDList():
+            position = traci.vehicle.getPosition(carID)
+            position_x = math.floor(position[0])
+            position_y = math.floor(position[1])
+            positions.append(position_x)
+            positions.append(position_y)
+            vol = traci.vehicle.getSpeed(carID)
+            vols.append(math.floor(vol))
+
+        s3 = max(positions)
+        s4 = max(vols)
+        state = np.hstack((s1, s2, s3, s4))
+
+
         return state
 
 
@@ -107,8 +127,8 @@ class sumo_env:
         traci.simulationStep()
         # PP=traci.vehicle.getIDCount()
         # print('next',PP)
-        s_=self.get_state()
-        if (self.get_state()==np.zeros([1, 40000])).all==True:
+        s_=self.get_state_new()
+        if (self.get_state_new()==np.zeros([1, 4])).all==True:
             done = True
         else:
             done = False
@@ -129,7 +149,7 @@ class DQN:
             reward_decay=0.9,
             e_greedy=0.9,
             replace_target_iter=300,
-            memory_size=50000,
+            memory_size=500,
             batch_size=32,
             e_greedy_increment=None,
             output_graph=False,
@@ -296,10 +316,11 @@ if __name__ == "__main__":
              )
     step1=0
     traci.start([sumoBinary, "-c", "single_route.sumocfg"])
-    for step in range(0, 3000):
+    traci.simulationStep()
+    for step in range(0, 300):
         while traci.simulation.getMinExpectedNumber() > 0:
             print('-------------------------------------------------------')
-            observation = env.get_state()
+            observation = env.get_state_new()
             print('state is', observation)
             action = RL.choose_action(observation)
             print('choose action is', action)
